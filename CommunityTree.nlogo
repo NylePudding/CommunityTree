@@ -453,7 +453,7 @@ to make-family[m f]
   
 end
 
-to generate-first-name[g]
+to-report generate-first-name[g]
   let first-names (list)
   
   if g = "f"[
@@ -462,6 +462,11 @@ to generate-first-name[g]
   if g = "m"[
     set first-names (list "Jack" "Oliver" "Charlie" "Harry" "Jacob" "Alfie" "Noah" "Oscar" "George" "James" "Thomas" "Jon" "Joseph" "Toby" "Biedrik" "Logan" "Freddie" "Jake" "Aiden" "Barry" "Larry" "Ethan" "Theo" "Luke" "Ollie" "Lewis" "Adam" "Isaac" "Benjamin" "Harley" "Tyler" "Alex" "Tommy" "Connor" "Nathan" "Matthew")
   ]
+  
+  let len length first-names
+  
+  report item random(len) first-names
+  
 end
 
 to generate-last-name
