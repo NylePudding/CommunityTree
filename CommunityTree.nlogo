@@ -21,7 +21,7 @@
 
 
 
-turtles-own[name partner children gender mother father homosexual had-children afairs afair-avaliable divorces]
+turtles-own[forename surname partner children gender mother father homosexual had-children afairs afair-avaliable divorces]
 
 to setup
   
@@ -453,10 +453,19 @@ to make-family[m f]
   
 end
 
-to generate-name[g]
+to generate-first-name[g]
+  let first-names (list)
   
-  
-  
+  if g = "f"[
+    set first-names (list "Sarah" "Amy" "Rosie" "Nicole" "Pennelope" "Rue" "Megan" "Hannah" "Bridget" "Jessica" "Guenevere" "Ellen" "Lilly" "Hermione" "Abbie" "Laura" "Kelly" "Mildrid" "Margaret" "Rossalind" "Elizabeth" "Nusha" "Ayumi" "Tara" "Sita" "Sophia" "Emma" "Olivia" "Mia" "Zoe" "Layla" "Hailey" "Evelyn" "Kaitlyn") 
+  ]
+  if g = "m"[
+    set first-names (list "Jack" "Oliver" "Charlie" "Harry" "Jacob" "Alfie" "Noah" "Oscar" "George" "James" "Thomas" "Jon" "Joseph" "Toby" "Biedrik" "Logan" "Freddie" "Jake" "Aiden" "Barry" "Larry" "Ethan" "Theo" "Luke" "Ollie" "Lewis" "Adam" "Isaac" "Benjamin" "Harley" "Tyler" "Alex" "Tommy" "Connor" "Nathan" "Matthew")
+  ]
+end
+
+to generate-last-name
+  let last-names (list "Smith" "Evans" "Tinsley" "Wallace" "Officer" "Edwards" "Thomas" "Norton" "Rees" "Lees" "Stokell" "Bramwell" "Entwistle" "Scott" "Broome" "Mercer" "Cook" "Mennim" "Stark" "Bolton" "Snow" "Baratheon" "Malek" "Slater" "Doubleday" "Walker" "Marshall" "Womack" "Beardwood" "Gunn" "Gray" "Kelly" "Orry")
 end
 
 to tell-story
