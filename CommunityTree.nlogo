@@ -21,7 +21,7 @@
 
 
 
-turtles-own[partner children gender mother father homosexual had-children afairs afair-avaliable divorces]
+turtles-own[name partner children gender mother father homosexual had-children afairs afair-avaliable divorces]
 
 to setup
   
@@ -453,8 +453,13 @@ to make-family[m f]
   
 end
 
+to generate-name[g]
+  
+  
+  
+end
 
-to find-couple
+to tell-story
   
 end
 
@@ -490,10 +495,10 @@ ticks
 30.0
 
 BUTTON
-134
-309
-197
-342
+290
+261
+353
+294
 NIL
 setup
 NIL
@@ -524,10 +529,10 @@ NIL
 1
 
 BUTTON
-178
-393
-241
-426
+331
+320
+394
+353
 NIL
 move
 T
@@ -601,10 +606,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-288
-216
-393
-249
+295
+132
+400
+165
 NIL
 intrigue-cycle
 NIL
@@ -648,12 +653,40 @@ NIL
 HORIZONTAL
 
 BUTTON
-216
-309
-279
-342
+372
+261
+435
+294
 NIL
 demo
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+INPUTBOX
+72
+308
+227
+368
+WHO-STORY
+30
+1
+0
+Number
+
+BUTTON
+112
+388
+193
+421
+NIL
+tell-story
 NIL
 1
 T
