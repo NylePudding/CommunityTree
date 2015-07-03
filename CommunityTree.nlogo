@@ -125,12 +125,35 @@ to divorce[me]
     set partner -1
     set had-children false
     set divorces fput them divorces
+    if father != -1[
+      let original-surname ""
+      ask turtle father[
+        set original-surname surname
+      ]
+      set surname original-surname
+    ]
+    if father = -1[
+      set surname generate-surname
+    ]
+
   ]
   if them != -1[
     ask turtle them[
       set partner -1
       set had-children false
       set divorces fput me divorces
+      
+      if father != -1[
+        let original-surname ""
+        ask turtle father[
+          set original-surname surname
+        ]
+        set surname original-surname
+      ]
+      if father = -1[
+        set surname generate-surname
+      ]
+      
     ]
   ]
   
@@ -181,6 +204,7 @@ to find-partners
     let me who
     let match -1
     let g gender
+    let last-name surname
     
     if partner = -1[
       
@@ -201,15 +225,33 @@ to find-partners
         ]
       ]
       
+      
       if match != -1[
+        let m-surname ""
         ask turtle match [
           set partner me
+          set m-surname surname
+          
+          if homosexual = false[
+            if gender = "f"[
+              set surname last-name
+            ]
+          ]
+          if homosexual = true[
+            set surname last-name
+          ]
           
           create-link-with turtle me [
             set color blue
           ]
         ]
+        if homosexual = false [
+          if gender = "f"[
+            set surname m-surname
+          ]
+        ]
       ]
+      
       
       if match = -1 [
         let rand random(101)
@@ -292,11 +334,15 @@ end
 to make-couple
   
   let c1 -1
+  let c1-surname ""
   let c2 -1
   
   create-turtles 1 [
     setxy random-xcor random-ycor
     set color blue
+    set forename generate-forename "m"
+    set surname generate-surname
+    set c1-surname surname
     set afair-avaliable false
     set afairs (list)
     set divorces (list)
@@ -312,6 +358,8 @@ to make-couple
   create-turtles 1 [
     setxy random-xcor random-ycor
     set color red
+    set forename generate-forename "f"
+    set surname c1-surname
     set afair-avaliable false
     set afairs (list)
     set divorces (list)
@@ -350,7 +398,7 @@ to make-outsider[them]
     
     set partner them
     set children (list)
-    set gender "f"
+    
     
     if homosexual = false [
       if them-gender = "m"[
@@ -372,6 +420,7 @@ to make-outsider[them]
       ]
     ]
     
+    set forename generate-forename gender
     set mother -1
     set father -1
     set homosexual false
@@ -386,7 +435,7 @@ to make-outsider[them]
   ask turtle them [
     set partner outsider
     create-link-with turtle outsider [
-      set color red + 1
+      set color red
     ]
   ]
   
@@ -399,8 +448,8 @@ to make-child[m f]
   hatch 1 [
     set partner -1
     set children (list)
-    set mother m
-    set father f
+    set mother f
+    set father m
     set homosexual true
     set afair-avaliable false
     set afairs (list)
@@ -422,6 +471,8 @@ to make-child[m f]
       set gender "f"
       set color red
     ]
+    
+    set forename generate-forename gender
     
     create-link-with turtle m [
       set color green
@@ -453,27 +504,79 @@ to make-family[m f]
   
 end
 
-to-report generate-first-name[g]
-  let first-names (list)
+to-report generate-forename[g]
+  let forenames (list)
   
   if g = "f"[
-    set first-names (list "Sarah" "Amy" "Rosie" "Nicole" "Pennelope" "Rue" "Megan" "Hannah" "Bridget" "Jessica" "Guenevere" "Ellen" "Lilly" "Hermione" "Abbie" "Laura" "Kelly" "Mildrid" "Margaret" "Rossalind" "Elizabeth" "Nusha" "Ayumi" "Tara" "Sita" "Sophia" "Emma" "Olivia" "Mia" "Zoe" "Layla" "Hailey" "Evelyn" "Kaitlyn") 
+    set forenames (list "Sarah" "Amy" "Rosie" "Nicole" "Pennelope" "Rue" "Megan" "Hannah" "Bridget" "Jessica" "Guenevere" "Ellen" "Lilly" "Hermione" "Abbie" "Laura" "Kelly" "Mildrid" "Margaret" "Rossalind" "Elizabeth" "Nusha" "Ayumi" "Tara" "Sita" "Sophia" "Emma" "Olivia" "Mia" "Zoe" "Layla" "Hailey" "Evelyn" "Kaitlyn") 
   ]
   if g = "m"[
-    set first-names (list "Jack" "Oliver" "Charlie" "Harry" "Jacob" "Alfie" "Noah" "Oscar" "George" "James" "Thomas" "Jon" "Joseph" "Toby" "Biedrik" "Logan" "Freddie" "Jake" "Aiden" "Barry" "Larry" "Ethan" "Theo" "Luke" "Ollie" "Lewis" "Adam" "Isaac" "Benjamin" "Harley" "Tyler" "Alex" "Tommy" "Connor" "Nathan" "Matthew")
+    set forenames (list "Jack" "Oliver" "Charlie" "Harry" "Jacob" "Alfie" "Noah" "Oscar" "George" "James" "Thomas" "Jon" "Joseph" "Toby" "Biedrik" "Logan" "Freddie" "Jake" "Aiden" "Barry" "Larry" "Ethan" "Theo" "Luke" "Ollie" "Lewis" "Adam" "Isaac" "Benjamin" "Harley" "Tyler" "Alex" "Tommy" "Connor" "Nathan" "Matthew")
   ]
   
-  let len length first-names
+  let len length forenames
   
-  report item random(len) first-names
+  report item random(len) forenames
   
 end
 
-to generate-last-name
-  let last-names (list "Smith" "Evans" "Tinsley" "Wallace" "Officer" "Edwards" "Thomas" "Norton" "Rees" "Lees" "Stokell" "Bramwell" "Entwistle" "Scott" "Broome" "Mercer" "Cook" "Mennim" "Stark" "Bolton" "Snow" "Baratheon" "Malek" "Slater" "Doubleday" "Walker" "Marshall" "Womack" "Beardwood" "Gunn" "Gray" "Kelly" "Orry")
+to-report generate-surname
+  let surnames (list "Smith" "Evans" "Tinsley" "Wallace" "Officer" "Edwards" "Thomas" "Norton" "Rees" "Lees" "Stokell" "Bramwell" "Entwistle" "Scott" "Broome" "Mercer" "Cook" "Mennim" "Stark" "Bolton" "Snow" "Baratheon" "Malek" "Slater" "Doubleday" "Walker" "Marshall" "Womack" "Beardwood" "Gunn" "Gray" "Griffiths" "Orry")
+  
+  let len length surnames
+  
+  report item random(len) surnames
+  
 end
 
-to tell-story
+to who-is[them]
+  
+  clear-output
+  
+  ;;PARENTS
+  
+  ask turtle them[
+    output-print (word "Bio for: " forename " " surname)
+    let mum ""
+    
+    if mother != -1[
+      ask turtle mother[
+        set mum forename
+        set mum (word mum " " surname) 
+      ]
+    ]
+    
+    output-print (word "Mother: " mum)
+    
+    let dad ""
+    
+    if father != -1[
+      ask turtle father[
+        set dad forename
+        set dad (word dad " " surname) 
+      ]
+    ]
+    
+    output-print (word "Father: " dad)
+  ]
+  
+  
+  ;;SIBLINGS
+  
+  ask turtle them[
+    
+    let mum-siblings (list)
+    let dad-siblings (list)
+    let full-siblings (list)
+    let half-siblings (list)
+    
+    ask mother[
+      
+    ]
+    
+  ]
+  
+  
   
 end
 
@@ -509,10 +612,10 @@ ticks
 30.0
 
 BUTTON
-290
-261
-353
-294
+278
+174
+341
+207
 NIL
 setup
 NIL
@@ -543,10 +646,10 @@ NIL
 1
 
 BUTTON
-331
-320
-394
-353
+316
+215
+379
+248
 NIL
 move
 T
@@ -568,7 +671,7 @@ STARTING-COUPLES
 STARTING-COUPLES
 1
 10
-4
+1
 1
 1
 NIL
@@ -598,7 +701,7 @@ OUTSIDER-CHANCE
 OUTSIDER-CHANCE
 0
 100
-49
+100
 1
 1
 NIL
@@ -613,7 +716,7 @@ HOMOSEXUAL-CHANCE
 HOMOSEXUAL-CHANCE
 0
 100
-50
+0
 1
 1
 NIL
@@ -667,10 +770,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-372
-261
-435
-294
+360
+174
+423
+207
 NIL
 demo
 NIL
@@ -683,33 +786,12 @@ NIL
 NIL
 1
 
-INPUTBOX
-72
-308
-227
-368
-WHO-STORY
-30
-1
-0
-Number
-
-BUTTON
-112
-388
-193
-421
-NIL
-tell-story
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
+OUTPUT
+64
+334
+440
+521
+12
 
 @#$#@#$#@
 ## WHAT IS IT?
