@@ -570,13 +570,71 @@ to who-is[them]
     let full-siblings (list)
     let half-siblings (list)
     
-    ask mother[
+    ask turtle mother[
+      set mum-siblings children
+    ]
+    ask turtle father[
+      set dad-siblings children
+    ]
+
+    
+    foreach mum-siblings[
+      let m-s ?
+      let dupe false
       
+      foreach dad-siblings[
+        let d-s ?
+        if d-s = m-s[
+          if d-s != who or m-s != who[
+            set full-siblings fput d-s full-siblings
+            set dupe true
+          ]
+        ]
+      ]
+      if dupe = false[
+        if m-s != who[
+          set half-siblings fput m-s half-siblings
+        ]
+      ]
     ]
     
+    let sisters ""
+    let brothers ""
+    let half-sisters ""
+    let half-brothers ""
+    
+    foreach full-siblings[
+      ask turtle ? [
+        let full-name (word forename " " surname)
+        
+        if gender = "f"[
+          set sisters (word sisters full-name ", ")
+        ]
+        if gender = "m"[
+          set brothers (word brothers full-name ", ")
+        ]
+      ]
+    ]
+    
+    foreach half-siblings[
+      ask turtle ? [
+        let full-name (word forename " " surname)
+        
+        if gender = "f"[
+          set half-sisters (word half-sisters full-name ", ")
+        ]
+        if gender = "m"[
+          set half-brothers (word half-brothers full-name ", ")
+        ]
+      ]
+    ]
+    
+     output-print (word "Sisters: " sisters)
+     output-print (word "Brothers: " brothers)
+     output-print (word "Half-sisters: " half-sisters)
+     output-print (word "Half-brothers: " half-brothers)
+    
   ]
-  
-  
   
 end
 
@@ -686,7 +744,7 @@ MAX-CHILDREN
 MAX-CHILDREN
 1
 10
-4
+10
 1
 1
 NIL
@@ -701,7 +759,7 @@ OUTSIDER-CHANCE
 OUTSIDER-CHANCE
 0
 100
-100
+0
 1
 1
 NIL
@@ -787,10 +845,10 @@ NIL
 1
 
 OUTPUT
-64
-334
-440
-521
+9
+337
+471
+524
 12
 
 @#$#@#$#@
