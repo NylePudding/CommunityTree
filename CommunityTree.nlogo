@@ -247,7 +247,7 @@ to find-partners
           ]
           
           create-link-with turtle me [
-            set color blue
+            set color red
           ]
         ]
         if homosexual = false [
@@ -544,7 +544,6 @@ to who-is[them]
   clear-output
   
   ;;PARENTS
-  
   ask turtle them[
     output-print (word "Bio for: " forename " " surname)
     let mum ""
@@ -572,7 +571,6 @@ to who-is[them]
   
   
   ;;SIBLINGS
-  
   ask turtle them[
     
     let mum-siblings (list)
@@ -658,16 +656,30 @@ to who-is[them]
     
     let outsider " (outsider)"
     let partner-name "no-one"
+    let partner-generation 0
+    let gen-difference 0
     
     if partner != -1[
       ask turtle partner [
+        set partner-generation generation
         set partner-name (word forename " " surname)
         if mother != -1 or father != -1[
           set outsider " (not outsider)"
         ]
       ]
     ]
-    output-print (word "Married to: " partner-name outsider)
+    
+    set gen-difference (generation - partner-generation)
+    output-print gen-difference
+    if gen-difference != 0[
+      let generation-output (word "(" gen-difference " difference in generation)")
+      output-print (word "Married to: " partner-name outsider generation-output)
+    ]
+    if gen-difference = 0 [
+      output-print (word "Married to: " partner-name outsider)
+    ]
+    
+    
   ]
   
   ;DIVORCES
@@ -697,6 +709,26 @@ to who-is[them]
   ]
   
   ;CHILDREN
+  ask turtle them[
+    let sons ""
+    let daughters ""
+    
+    foreach children[
+      let child-name ""
+      ask turtle ? [
+        set child-name (word forename " " surname)
+        if gender = "m"[
+          set sons (word sons " " child-name ", ")
+        ]
+        if gender = "f"[
+          set daughters (word daughters " " child-name ", ")
+        ]
+      ]
+    ]
+    
+    output-print (word "Sons: " sons)
+    output-print (word "Daughters: " daughters)
+  ]
   
   
 end
@@ -792,7 +824,7 @@ STARTING-COUPLES
 STARTING-COUPLES
 1
 10
-2
+3
 1
 1
 NIL
@@ -807,7 +839,7 @@ MAX-CHILDREN
 MAX-CHILDREN
 1
 10
-6
+5
 1
 1
 NIL
@@ -822,7 +854,7 @@ OUTSIDER-CHANCE
 OUTSIDER-CHANCE
 0
 100
-48
+0
 1
 1
 NIL
@@ -837,7 +869,7 @@ HOMOSEXUAL-CHANCE
 HOMOSEXUAL-CHANCE
 0
 100
-0
+50
 1
 1
 NIL
