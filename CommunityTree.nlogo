@@ -20,10 +20,12 @@
 
 
 
-
-turtles-own[forename surname partner children gender mother father homosexual had-children afairs afair-avaliable divorces]
+globals[gen]
+turtles-own[forename surname partner children gender mother father homosexual had-children afairs afair-avaliable divorces generation]
 
 to setup
+  
+  set gen 0
   
   clear-all
   set-default-shape turtles "person"
@@ -54,6 +56,7 @@ end
 
 to generation-cycle
   
+  set gen gen + 1
   create-families
   find-partners
   
@@ -124,7 +127,9 @@ to divorce[me]
     set them partner
     set partner -1
     set had-children false
-    set divorces fput them divorces
+    if them != -1[
+      set divorces fput them divorces
+    ]
     if father != -1[
       let original-surname ""
       ask turtle father[
@@ -340,6 +345,7 @@ to make-couple
   create-turtles 1 [
     setxy random-xcor random-ycor
     set color blue
+    set generation 0
     set forename generate-forename "m"
     set surname generate-surname
     set c1-surname surname
@@ -356,6 +362,7 @@ to make-couple
     set c1 who
   ]
   create-turtles 1 [
+    set generation 0
     setxy random-xcor random-ycor
     set color red
     set forename generate-forename "f"
@@ -387,9 +394,11 @@ to make-outsider[them]
   
   let outsider -1
   let them-gender "m"
+  let them-generation generation
   
   ask turtle them [
     set them-gender gender
+    set them-generation generation
   ]
   
   
@@ -420,6 +429,7 @@ to make-outsider[them]
       ]
     ]
     
+    set generation them-generation
     set forename generate-forename gender
     set mother -1
     set father -1
@@ -446,11 +456,11 @@ to make-child[m f]
   let c-who -1
   
   hatch 1 [
+    set generation gen
     set partner -1
     set children (list)
     set mother f
     set father m
-    set homosexual true
     set afair-avaliable false
     set afairs (list)
     set divorces (list)
@@ -570,30 +580,33 @@ to who-is[them]
     let full-siblings (list)
     let half-siblings (list)
     
-    ask turtle mother[
-      set mum-siblings children
-    ]
-    ask turtle father[
-      set dad-siblings children
-    ]
-
+    if mother != -1 and father != -1 [
     
-    foreach mum-siblings[
-      let m-s ?
-      let dupe false
+      ask turtle mother[
+        set mum-siblings children
+      ]
+      ask turtle father[
+        set dad-siblings children
+      ]
       
-      foreach dad-siblings[
-        let d-s ?
-        if d-s = m-s[
-          if d-s != who or m-s != who[
-            set full-siblings fput d-s full-siblings
-            set dupe true
+      
+      foreach mum-siblings[
+        let m-s ?
+        let dupe false
+        
+        foreach dad-siblings[
+          let d-s ?
+          if d-s = m-s[
+            if d-s != who or m-s != who[
+              set full-siblings fput d-s full-siblings
+              set dupe true
+            ]
           ]
         ]
-      ]
-      if dupe = false[
-        if m-s != who[
-          set half-siblings fput m-s half-siblings
+        if dupe = false[
+          if m-s != who[
+            set half-siblings fput m-s half-siblings
+          ]
         ]
       ]
     ]
@@ -603,28 +616,31 @@ to who-is[them]
     let half-sisters ""
     let half-brothers ""
     
-    foreach full-siblings[
-      ask turtle ? [
-        let full-name (word forename " " surname)
+    if mother != -1 and father != -1 [
+    
+      foreach full-siblings[
+        ask turtle ? [
+          let full-name (word forename " " surname)
         
-        if gender = "f"[
-          set sisters (word sisters full-name ", ")
-        ]
-        if gender = "m"[
-          set brothers (word brothers full-name ", ")
+          if gender = "f"[
+            set sisters (word sisters full-name ", ")
+          ]
+          if gender = "m"[
+            set brothers (word brothers full-name ", ")
+          ]
         ]
       ]
-    ]
     
-    foreach half-siblings[
-      ask turtle ? [
-        let full-name (word forename " " surname)
-        
-        if gender = "f"[
-          set half-sisters (word half-sisters full-name ", ")
-        ]
-        if gender = "m"[
-          set half-brothers (word half-brothers full-name ", ")
+      foreach half-siblings[
+        ask turtle ? [
+          let full-name (word forename " " surname)
+          
+          if gender = "f"[
+            set half-sisters (word half-sisters full-name ", ")
+          ]
+          if gender = "m"[
+            set half-brothers (word half-brothers full-name ", ")
+          ]
         ]
       ]
     ]
@@ -635,6 +651,53 @@ to who-is[them]
      output-print (word "Half-brothers: " half-brothers)
     
   ]
+  
+  
+  ;;MARRIAGE
+  ask turtle them[
+    
+    let outsider " (outsider)"
+    let partner-name "no-one"
+    
+    if partner != -1[
+      ask turtle partner [
+        set partner-name (word forename " " surname)
+        if mother != -1 or father != -1[
+          set outsider " (not outsider)"
+        ]
+      ]
+    ]
+    output-print (word "Married to: " partner-name outsider)
+  ]
+  
+  ;DIVORCES
+  ask turtle them[
+    let divorce-output ""
+    foreach divorces[
+      let divorcee-name ""
+      ask turtle ? [
+        set divorcee-name (word forename " " surname)
+      ]
+      set divorce-output (word divorce-output " " divorcee-name ", ")
+    ]
+    output-print (word "Previously married to: " divorce-output )
+  ]
+  
+  ;AFFAIRS
+  ask turtle them[
+    let afair-output ""
+    foreach afairs[
+      let afair-name ""
+      ask turtle ? [
+        set afair-name (word forename " " surname)
+      ]
+      set afair-output (word afair-output " " afair-name ", ")
+    ]
+    output-print (word "Had an afair with: " afair-output )
+  ]
+  
+  ;CHILDREN
+  
   
 end
 
@@ -729,7 +792,7 @@ STARTING-COUPLES
 STARTING-COUPLES
 1
 10
-1
+2
 1
 1
 NIL
@@ -744,7 +807,7 @@ MAX-CHILDREN
 MAX-CHILDREN
 1
 10
-10
+6
 1
 1
 NIL
@@ -759,7 +822,7 @@ OUTSIDER-CHANCE
 OUTSIDER-CHANCE
 0
 100
-0
+48
 1
 1
 NIL
@@ -848,7 +911,7 @@ OUTPUT
 9
 337
 471
-524
+601
 12
 
 @#$#@#$#@
