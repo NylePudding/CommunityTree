@@ -43,11 +43,8 @@ to demo
   
   setup
   
-  repeat 2[
+  repeat 3[
     generation-cycle
-  ]
-  
-  repeat 1[
     intrigue-cycle
   ]
   
@@ -207,9 +204,11 @@ to find-partners
   ask turtles [
     
     let me who
+    let me-homosexual homosexual
     let match -1
     let g gender
     let last-name surname
+    
     
     if partner = -1[
       
@@ -222,8 +221,10 @@ to find-partners
               ]
             ]
             if homosexual = true [
-              if gender = g [
-                set match who
+              if me-homosexual = homosexual[
+                if gender = g [
+                  set match who
+                ]
               ]
             ]
           ]
@@ -824,7 +825,7 @@ STARTING-COUPLES
 STARTING-COUPLES
 1
 10
-3
+4
 1
 1
 NIL
@@ -839,7 +840,7 @@ MAX-CHILDREN
 MAX-CHILDREN
 1
 10
-5
+4
 1
 1
 NIL
