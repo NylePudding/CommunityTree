@@ -4,7 +4,7 @@
 
 ;; Useful info
 ;; LINKS
-;; Red - "Official" partner
+;; Red - Married to
 ;; Green - Child of
 ;; Brown - Divorced
 ;; Black - Afair
@@ -21,14 +21,19 @@
 
 
 globals[gen]
-turtles-own[forename surname partner children gender mother father homosexual had-children afairs afair-avaliable divorces generation]
+breed[people person]
+breed[occupations occupation]
+people-own[forename surname partner children gender mother father homosexual had-children afairs afair-avaliable divorces generation age]
+occupations-own[boss workers]
+links-own[strength name]
 
 to setup
   
   set gen 0
   
   clear-all
-  set-default-shape turtles "person"
+  set-default-shape people "person"
+  set-default-shape occupations "house"
   
   ask patches[
     set pcolor white
@@ -66,9 +71,13 @@ to intrigue-cycle
   
 end
 
+to year-cycle
+  
+end
+
 
 to process-divorces
-  ask turtles[
+  ask people[
     if partner != -1 or partner != who[
       let rand random(101)
       if rand < DIVORCE-CHANCE[
@@ -80,7 +89,7 @@ end
 
 
 to process-afairs
-  ask turtles[
+  ask people[
     let rand random(101)
     set afair-avaliable false
     if rand < AFAIR-CHANCE[
@@ -88,12 +97,12 @@ to process-afairs
     ]
   ]
   
-  ask turtles[
+  ask people[
     
     let me-who who
     
     if afair-avaliable = true[
-      ask other turtles [
+      ask other people [
         if afair-avaliable = true[
           if generations-away 2 me-who who = true [
             have-afair me-who who
@@ -105,22 +114,22 @@ to process-afairs
 end
 
 to have-afair[me them]
-  ask turtle me[
+  ask person me[
     set afairs fput them afairs
     
-    create-link-with turtle them [
+    create-link-with person them [
       set color black
     ]
   ]
   
-  ask turtle them[
+  ask person them[
     set afairs fput me afairs
   ]
 end
 
 to divorce[me]
   let them -1
-  ask turtle me[
+  ask person me[
     set them partner
     set partner -1
     set had-children false
@@ -129,7 +138,7 @@ to divorce[me]
     ]
     if father != -1[
       let original-surname ""
-      ask turtle father[
+      ask person father[
         set original-surname surname
       ]
       set surname original-surname
@@ -140,14 +149,14 @@ to divorce[me]
 
   ]
   if them != -1[
-    ask turtle them[
+    ask person them[
       set partner -1
       set had-children false
       set divorces fput me divorces
       
       if father != -1[
         let original-surname ""
-        ask turtle father[
+        ask person father[
           set original-surname surname
         ]
         set surname original-surname
@@ -161,9 +170,9 @@ to divorce[me]
   
   remove-links-between me them
   
-  ask turtle me[
+  ask person me[
     if them != -1[
-      create-link-with turtle them [
+      create-link-with person them [
         set color brown
       ]
     ]
@@ -177,8 +186,12 @@ to remove-links-between [ a b ]
    if is-link? link b a [ ask link b a [ die ] ] 
 end 
 
+to create-job
+  
+end
+
 to create-families
-  ask turtles [
+  ask people [
     if homosexual = false[
       if partner != -1[
         if had-children = false[
@@ -191,7 +204,7 @@ to create-families
         
           set had-children true 
         
-          ask turtle partner [
+          ask person partner [
             set had-children true
           ]
         ]
@@ -201,7 +214,7 @@ to create-families
 end
 
 to find-partners
-  ask turtles [
+  ask people [
     
     let me who
     let me-homosexual homosexual
@@ -212,7 +225,7 @@ to find-partners
     
     if partner = -1[
       
-      ask other turtles [
+      ask other people [
         if generations-away 2 me who = true [
           if partner = -1 [
             if homosexual = false [
@@ -234,7 +247,7 @@ to find-partners
       
       if match != -1[
         let m-surname ""
-        ask turtle match [
+        ask person match [
           set partner me
           set m-surname surname
           
@@ -247,7 +260,7 @@ to find-partners
             set surname last-name
           ]
           
-          create-link-with turtle me [
+          create-link-with person me [
             set color red
           ]
         ]
@@ -283,12 +296,12 @@ to-report generations-away[g me target]
   let ta-f -1
   let result true
   
-  ask turtle me [
+  ask person me [
     set me-m mother
     set me-f father
   ]
   
-  ask turtle target [
+  ask person target [
     if who = me-m or who = me-f [
       set result false
     ]
@@ -302,13 +315,13 @@ to-report generations-away[g me target]
   ]
   
   if ta-f != -1 and ta-m != -1[
-    ask turtle ta-f [
+    ask person ta-f [
       if mother = me-m or father = me-f[
         set result false
       ]  
     ]
   
-    ask turtle ta-m [
+    ask person ta-m [
       if mother = me-m or father = me-f[
         set result false
       ]  
@@ -316,7 +329,7 @@ to-report generations-away[g me target]
     
     foreach children[
       
-      ask turtle ? [
+      ask person ? [
         
         if who = me-m or who = me-f[
           set result false
@@ -324,7 +337,7 @@ to-report generations-away[g me target]
         
         foreach children[
           
-          ask turtle ? [
+          ask person ? [
             if who = me-m or who = me-f[
               set result false
             ]
@@ -343,7 +356,7 @@ to make-couple
   let c1-surname ""
   let c2 -1
   
-  create-turtles 1 [
+  create-people 1 [
     setxy random-xcor random-ycor
     set color blue
     set generation 0
@@ -362,7 +375,7 @@ to make-couple
     set had-children false
     set c1 who
   ]
-  create-turtles 1 [
+  create-people 1 [
     set generation 0
     setxy random-xcor random-ycor
     set color red
@@ -381,9 +394,9 @@ to make-couple
     set c2 who
   ]
   
-  ask turtle c1 [
+  ask person c1 [
     set partner c2
-    create-link-with turtle c2 [
+    create-link-with person c2 [
       set color red
     ]
   ]
@@ -397,7 +410,7 @@ to make-outsider[them]
   let them-gender "m"
   let them-generation generation
   
-  ask turtle them [
+  ask person them [
     set them-gender gender
     set them-generation generation
   ]
@@ -443,9 +456,9 @@ to make-outsider[them]
     set outsider who
   ]
   
-  ask turtle them [
+  ask person them [
     set partner outsider
-    create-link-with turtle outsider [
+    create-link-with person outsider [
       set color red
     ]
   ]
@@ -458,6 +471,7 @@ to make-child[m f]
   
   hatch 1 [
     set generation gen
+    set age 0
     set partner -1
     set children (list)
     set mother f
@@ -485,17 +499,17 @@ to make-child[m f]
     
     set forename generate-forename gender
     
-    create-link-with turtle m [
+    create-link-with person m [
       set color green
     ]
-    create-link-with turtle f [
+    create-link-with person f [
       set color green
     ]
     
-    ask turtle m [
+    ask person m [
       set children fput c-who children
     ]
-    ask turtle f [
+    ask person f [
       set children fput c-who children
     ]
     
@@ -545,12 +559,12 @@ to who-is[them]
   clear-output
   
   ;;PARENTS
-  ask turtle them[
+  ask person them[
     output-print (word "Bio for: " forename " " surname)
     let mum ""
     
     if mother != -1[
-      ask turtle mother[
+      ask person mother[
         set mum forename
         set mum (word mum " " surname) 
       ]
@@ -561,7 +575,7 @@ to who-is[them]
     let dad ""
     
     if father != -1[
-      ask turtle father[
+      ask person father[
         set dad forename
         set dad (word dad " " surname) 
       ]
@@ -572,7 +586,7 @@ to who-is[them]
   
   
   ;;SIBLINGS
-  ask turtle them[
+  ask person them[
     
     let mum-siblings (list)
     let dad-siblings (list)
@@ -581,10 +595,10 @@ to who-is[them]
     
     if mother != -1 and father != -1 [
     
-      ask turtle mother[
+      ask person mother[
         set mum-siblings children
       ]
-      ask turtle father[
+      ask person father[
         set dad-siblings children
       ]
       
@@ -618,7 +632,7 @@ to who-is[them]
     if mother != -1 and father != -1 [
     
       foreach full-siblings[
-        ask turtle ? [
+        ask person ? [
           let full-name (word forename " " surname)
         
           if gender = "f"[
@@ -631,7 +645,7 @@ to who-is[them]
       ]
     
       foreach half-siblings[
-        ask turtle ? [
+        ask person ? [
           let full-name (word forename " " surname)
           
           if gender = "f"[
@@ -653,7 +667,7 @@ to who-is[them]
   
   
   ;;MARRIAGE
-  ask turtle them[
+  ask person them[
     
     let outsider " (outsider)"
     let partner-name "no-one"
@@ -661,7 +675,7 @@ to who-is[them]
     let gen-difference 0
     
     if partner != -1[
-      ask turtle partner [
+      ask person partner [
         set partner-generation generation
         set partner-name (word forename " " surname)
         if mother != -1 or father != -1[
@@ -671,7 +685,6 @@ to who-is[them]
     ]
     
     set gen-difference (generation - partner-generation)
-    output-print gen-difference
     if gen-difference != 0[
       let generation-output (word "(" gen-difference " difference in generation)")
       output-print (word "Married to: " partner-name outsider generation-output)
@@ -684,11 +697,11 @@ to who-is[them]
   ]
   
   ;DIVORCES
-  ask turtle them[
+  ask person them[
     let divorce-output ""
     foreach divorces[
       let divorcee-name ""
-      ask turtle ? [
+      ask person ? [
         set divorcee-name (word forename " " surname)
       ]
       set divorce-output (word divorce-output " " divorcee-name ", ")
@@ -697,11 +710,11 @@ to who-is[them]
   ]
   
   ;AFFAIRS
-  ask turtle them[
+  ask person them[
     let afair-output ""
     foreach afairs[
       let afair-name ""
-      ask turtle ? [
+      ask person ? [
         set afair-name (word forename " " surname)
       ]
       set afair-output (word afair-output " " afair-name ", ")
@@ -710,13 +723,13 @@ to who-is[them]
   ]
   
   ;CHILDREN
-  ask turtle them[
+  ask person them[
     let sons ""
     let daughters ""
     
     foreach children[
       let child-name ""
-      ask turtle ? [
+      ask person ? [
         set child-name (word forename " " surname)
         if gender = "m"[
           set sons (word sons " " child-name ", ")
@@ -783,10 +796,10 @@ NIL
 1
 
 BUTTON
-41
-215
-165
-248
+37
+239
+161
+272
 NIL
 generation-cycle
 NIL
@@ -817,10 +830,10 @@ NIL
 1
 
 SLIDER
-17
-25
-189
-58
+6
+10
+186
+43
 STARTING-COUPLES
 STARTING-COUPLES
 1
@@ -832,25 +845,25 @@ NIL
 HORIZONTAL
 
 SLIDER
-18
-71
-190
-104
+6
+43
+186
+76
 MAX-CHILDREN
 MAX-CHILDREN
 1
 10
-4
+5
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-18
-116
-190
-149
+6
+76
+186
+109
 OUTSIDER-CHANCE
 OUTSIDER-CHANCE
 0
@@ -862,10 +875,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-16
-163
-196
-196
+6
+109
+186
+142
 HOMOSEXUAL-CHANCE
 HOMOSEXUAL-CHANCE
 0
@@ -946,6 +959,38 @@ OUTPUT
 471
 601
 12
+
+BUTTON
+56
+280
+145
+313
+NIL
+year-cycle
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+6
+141
+186
+174
+PARTNER-CHANCE
+PARTNER-CHANCE
+0
+100
+50
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
