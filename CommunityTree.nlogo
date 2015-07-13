@@ -24,7 +24,7 @@ globals[gen]
 breed[people person]
 breed[occupations occupation]
 people-own[forename surname partner children gender mother father homosexual had-children afairs afair-avaliable divorces generation age]
-occupations-own[boss workers]
+occupations-own[boss workers applicants capacity previous]
 links-own[strength name]
 
 to setup
@@ -73,6 +73,12 @@ end
 
 to year-cycle
   
+  
+  
+  
+  ask people[
+    set age age + 1
+  ]
 end
 
 
@@ -222,67 +228,67 @@ to find-partners
     let g gender
     let last-name surname
     
-    
-    if partner = -1[
-      
-      ask other people [
-        if generations-away 2 me who = true [
-          if partner = -1 [
-            if homosexual = false [
-              if gender != g[
-                set match who
-              ]
-            ]
-            if homosexual = true [
-              if me-homosexual = homosexual[
-                if gender = g [
+    if age >= 18[
+      if partner = -1[
+        ask other people [
+          if generations-away 2 me who = true [
+            if partner = -1 [
+              if homosexual = false [
+                if gender != g[
                   set match who
+                ]
+              ]
+              if homosexual = true [
+                if me-homosexual = homosexual[
+                  if gender = g [
+                    set match who
+                  ]
                 ]
               ]
             ]
           ]
         ]
-      ]
       
       
-      if match != -1[
-        let m-surname ""
-        ask person match [
-          set partner me
-          set m-surname surname
-          
-          if homosexual = false[
-            if gender = "f"[
+        if match != -1[
+          let m-surname ""
+          ask person match [
+            set partner me
+            set m-surname surname
+            
+            if homosexual = false[
+              if gender = "f"[
+                set surname last-name
+              ]
+            ]
+            if homosexual = true[
               set surname last-name
             ]
+            
+            create-link-with person me [
+              set color red
+            ]
           ]
-          if homosexual = true[
-            set surname last-name
-          ]
-          
-          create-link-with person me [
-            set color red
-          ]
-        ]
-        if homosexual = false [
-          if gender = "f"[
-            set surname m-surname
+          if homosexual = false [
+            if gender = "f"[
+              set surname m-surname
+            ]
           ]
         ]
-      ]
-      
-      
-      if match = -1 [
-        let rand random(101)
-        if rand < OUTSIDER-CHANCE[
-          make-outsider who
+        
+        
+        if match = -1 [
+          let rand random(101)
+          if rand < OUTSIDER-CHANCE[
+            make-outsider who
+          ]
         ]
+        
+        if match != -1 [
+          set partner match
+        ]
+        
       ]
-      
-      if match != -1 [
-        set partner match
-      ]
-      
     ]
   ]
 end
@@ -1335,7 +1341,7 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.1.0
+NetLogo 5.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
