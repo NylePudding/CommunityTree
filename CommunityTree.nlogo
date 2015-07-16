@@ -72,10 +72,6 @@ to intrigue-cycle
 end
 
 to year-cycle
-  
-  
-  
-  
   ask people[
     set age age + 1
   ]
@@ -367,6 +363,7 @@ to make-couple
   
   let c1 -1
   let c1-surname ""
+  let c1-age 0
   let c2 -1
   
   create-people 1 [
@@ -386,6 +383,8 @@ to make-couple
     set father -1
     set homosexual false
     set had-children false
+    set age random(82) + 18
+    set c1-age age
     set c1 who
   ]
   create-people 1 [
@@ -404,6 +403,7 @@ to make-couple
     set father -1
     set homosexual false
     set had-children false
+    set age random(82) + 18
     set c2 who
   ]
   
