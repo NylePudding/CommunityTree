@@ -42,6 +42,12 @@ to setup
     make-couple
   ]
   
+  repeat 5[
+    create-job
+  ]
+  
+  find-bosses
+  
 end
 
 to demo
@@ -199,6 +205,31 @@ to create-job
   
 end
 
+
+
+
+to find-bosses
+  
+  ask occupations[
+    
+    let new-boss ""
+    
+    ask people[
+      if age >= 18[
+        if random(101) < BOSS-CHANCE[
+          set new-boss who
+          stop
+        ]
+      ] 
+    ]
+    
+    set boss new-boss
+  ]
+  
+end
+
+
+
 to create-families
   ask people [
     if homosexual = false[
@@ -283,7 +314,7 @@ to find-partners
         if match = -1 [
           let rand random(101)
           if rand < OUTSIDER-CHANCE[
-            make-outsider who
+            make-outsider-couple who
           ]
         ]
         
@@ -417,7 +448,7 @@ to make-couple
 end
 
 
-to make-outsider[them]
+to make-outsider-couple[them]
   
   let outsider -1
   let them-gender "m"
@@ -478,8 +509,12 @@ to make-outsider[them]
   
 end
 
+to make-outsider-boss[job][
+    
+]
 
-to make-child[m f]
+
+to make-child[m f] ;m : male - f : female
   let c-who -1
   
   hatch 1 [
@@ -997,6 +1032,21 @@ SLIDER
 174
 PARTNER-CHANCE
 PARTNER-CHANCE
+0
+100
+50
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+6
+174
+186
+207
+BOSS-CHANCE
+BOSS-CHANCE
 0
 100
 50
