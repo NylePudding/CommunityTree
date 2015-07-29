@@ -24,7 +24,7 @@ globals[gen]
 breed[people person]
 breed[occupations occupation]
 people-own[forename surname partner children gender mother father homosexual had-children afairs afair-avaliable divorces generation age occ]
-occupations-own[boss workers applicants capacity previous]
+occupations-own[boss full-time part-time applicants capacity previous]
 links-own[strength name]
 
 to setup
@@ -46,7 +46,7 @@ to setup
     create-job
   ]
   
-  find-bosses
+  
   
 end
 
@@ -81,6 +81,10 @@ to year-cycle
   ask people[
     set age age + 1
   ]
+  
+  find-bosses
+  occupation-apply
+  
 end
 
 
@@ -198,7 +202,8 @@ to create-job
   
   create-occupations 1 [
     setxy random-xcor random-ycor
-    set workers (list)
+    set full-time (list)
+    set part-time (list)
     set applicants (list)
     set previous (list)
     set capacity 99
