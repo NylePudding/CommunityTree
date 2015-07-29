@@ -509,9 +509,11 @@ to make-outsider-couple[them]
   
 end
 
-to make-outsider-boss[job][
+to make-outsider-boss[job]
     
-]
+    
+    
+end
 
 
 to make-child[m f] ;m : male - f : female
@@ -581,7 +583,7 @@ to-report generate-forename[g]
   let forenames (list)
   
   if g = "f"[
-    set forenames (list "Sarah" "Amy" "Rosie" "Nicole" "Pennelope" "Rue" "Megan" "Hannah" "Bridget" "Jessica" "Guenevere" "Ellen" "Lilly" "Hermione" "Abbie" "Laura" "Kelly" "Mildrid" "Margaret" "Rossalind" "Elizabeth" "Nusha" "Ayumi" "Tara" "Sita" "Sophia" "Emma" "Olivia" "Mia" "Zoe" "Layla" "Hailey" "Evelyn" "Kaitlyn") 
+    set forenames (list "Sarah" "Amy" "Rosie" "Nicole" "Penni" "Rue" "Megan" "Hannah" "Bridget" "Jessica" "Guenevere" "Ellen" "Lilly" "Hermione" "Abbie" "Laura" "Kelly" "Mildrid" "Margaret" "Rossalind" "Elizabeth" "Nusha" "Ayumi" "Tara" "Sita" "Sophia" "Emma" "Olivia" "Mia" "Zoe" "Layla" "Hailey" "Evelyn" "Kaitlyn") 
   ]
   if g = "m"[
     set forenames (list "Jack" "Oliver" "Charlie" "Harry" "Jacob" "Alfie" "Noah" "Oscar" "George" "James" "Thomas" "Jon" "Joseph" "Toby" "Biedrik" "Logan" "Freddie" "Jake" "Aiden" "Barry" "Larry" "Ethan" "Theo" "Luke" "Ollie" "Lewis" "Adam" "Isaac" "Benjamin" "Harley" "Tyler" "Alex" "Tommy" "Connor" "Nathan" "Matthew")
