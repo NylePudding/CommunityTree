@@ -23,7 +23,7 @@
 globals[gen]
 breed[people person]
 breed[occupations occupation]
-people-own[forename surname partner children gender mother father homosexual had-children afairs afair-avaliable divorces generation age]
+people-own[forename surname partner children gender mother father homosexual had-children afairs afair-avaliable divorces generation age occ]
 occupations-own[boss workers applicants capacity previous]
 links-own[strength name]
 
@@ -42,7 +42,7 @@ to setup
     make-couple
   ]
   
-  repeat 5[
+  repeat STARTING-OCCUPATIONS [
     create-job
   ]
   
@@ -213,27 +213,38 @@ to find-bosses
   
   ask occupations[
     
+    let occ-who who
+    
     let new-boss ""
     
     ask people[
       if age >= 18[
-        if random(101) < BOSS-CHANCE[
-          set new-boss who
-          stop
+        if occ = -1 [
+          if random(101) < BOSS-CHANCE[
+            set new-boss who
+            stop
+          ]
         ]
       ] 
     ]
     
     if new-boss = "" [
-      set new-box outsider-boss
+      set new-boss make-outsider-boss
     ]
     
     set boss new-boss
+    
+    create-link-with person boss [
+      set color red
+    ]
+    
+    ask person boss [
+      set occ occ-who
+    ]
+    
   ]
   
 end
-
-
 
 to create-families
   ask people [
@@ -419,6 +430,7 @@ to make-couple
     set father -1
     set homosexual false
     set had-children false
+    set occ -1
     set age random(82) + 18
     set c1-age age
     set c1 who
@@ -439,6 +451,7 @@ to make-couple
     set father -1
     set homosexual false
     set had-children false
+    set occ -1
     set age random(82) + 18
     set c2 who
   ]
@@ -498,6 +511,7 @@ to make-outsider-couple[them]
     set father -1
     set homosexual false
     set had-children false
+    set occ -1
     set afair-avaliable false
     set afairs (list)
     set divorces (list)
@@ -514,20 +528,23 @@ to make-outsider-couple[them]
   
 end
 
-to make-outsider-boss[job]
+to-report make-outsider-boss
+    
+    let new-boss-who ""
     
     
-    
-    
-    hatch 1 [
+    hatch-people 1 [
+      set new-boss-who who
     
       let rand-int random(2)
       
       if rand-int = 0[
         set gender "m"
+        set color blue
       ]
       if rand-int = 1 [
         set gender "f"
+        set color red
       ]
       
       set rand-int random(2)
@@ -542,8 +559,19 @@ to make-outsider-boss[job]
       
       set forename generate-forename gender
       set surname generate-surname
+      set age random(82) + 18
+      set mother -1
+      set father -1
+      set had-children false
+      set afair-avaliable false
+      set afairs (list)
+      set divorces (list)
+      
+      
       
     ]
+    
+    report new-boss-who
     
 end
 
@@ -562,6 +590,7 @@ to make-child[m f] ;m : male - f : female
     set afairs (list)
     set divorces (list)
     set had-children false
+    set occ -1
     set c-who who
     set homosexual false
     
@@ -834,10 +863,10 @@ to move
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-1117
-67
-1718
-689
+744
+66
+1345
+688
 16
 16
 17.91
@@ -920,7 +949,7 @@ STARTING-COUPLES
 STARTING-COUPLES
 1
 10
-4
+1
 1
 1
 NIL
@@ -1075,15 +1104,30 @@ NIL
 HORIZONTAL
 
 SLIDER
-6
-174
-186
-207
+477
+27
+657
+60
 BOSS-CHANCE
 BOSS-CHANCE
 0
 100
+71
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+479
+88
+675
+121
+STARTING-OCCUPATIONS
+STARTING-OCCUPATIONS
 0
+10
+10
 1
 1
 NIL
