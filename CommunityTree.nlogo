@@ -197,6 +197,7 @@ end
 to create-job
   
   create-occupations 1 [
+    setxy random-xcor random-ycor
     set workers (list)
     set applicants (list)
     set previous (list)
@@ -221,6 +222,10 @@ to find-bosses
           stop
         ]
       ] 
+    ]
+    
+    if new-boss = "" [
+      set new-box outsider-boss
     ]
     
     set boss new-boss
@@ -513,6 +518,33 @@ to make-outsider-boss[job]
     
     
     
+    
+    hatch 1 [
+    
+      let rand-int random(2)
+      
+      if rand-int = 0[
+        set gender "m"
+      ]
+      if rand-int = 1 [
+        set gender "f"
+      ]
+      
+      set rand-int random(2)
+      
+      if rand-int = 0[
+        set homosexual true
+      ]
+      if rand-int = 1 [
+        set homosexual false
+      ]
+      
+      
+      set forename generate-forename gender
+      set surname generate-surname
+      
+    ]
+    
 end
 
 
@@ -802,13 +834,13 @@ to move
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-485
-70
-924
-530
+1117
+67
+1718
+689
 16
 16
-13.0
+17.91
 1
 10
 1
@@ -1051,7 +1083,7 @@ BOSS-CHANCE
 BOSS-CHANCE
 0
 100
-50
+0
 1
 1
 NIL
