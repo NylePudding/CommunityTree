@@ -83,7 +83,7 @@ to year-cycle
   ]
   
   find-bosses
-  occupation-apply
+  apply-for-occs
   
 end
 
@@ -202,6 +202,7 @@ to create-job
   
   create-occupations 1 [
     setxy random-xcor random-ycor
+    set boss -1
     set full-time (list)
     set part-time (list)
     set applicants (list)
@@ -220,31 +221,79 @@ to find-bosses
     
     let occ-who who
     
-    let new-boss ""
     
-    ask people[
-      if age >= 18[
-        if occ = -1 [
-          if random(101) < BOSS-CHANCE[
-            set new-boss who
-            stop
+    let new-boss ""
+    if boss = -1[
+      ask people[
+        if age >= 18[
+          if occ = -1 [
+            if random(101) < BOSS-CHANCE[
+              set new-boss who
+              stop
+            ]
+          ]
+        ] 
+      ]
+      
+      if new-boss = "" [
+        set new-boss make-outsider-boss
+      ]
+      
+      set boss new-boss
+      
+      ask person boss [
+        set occ occ-who
+      ]
+      
+      create-link-with person boss [
+        set color red
+      ]
+      
+      
+    ]
+  ]
+  
+  
+  
+end
+
+to apply-for-occs
+  
+  ask people [
+    
+    let new-job -1
+    let me-who who
+    if occ = -1[
+      ask occupations [
+        let employees (length part-time) + (length full-time)
+        
+        if employees < capacity[
+          
+          let randInt random(101)
+          
+          if randInt < APPLICATION-CHANCE[
+            set new-job who
+            set randInt random(2)
+            if randInt = 0 [
+              set full-time fput me-who full-time
+            ]
+            if randInt = 1 [
+              set part-time fput me-who part-time
+            ]
+            
           ]
         ]
-      ] 
+      ]
     ]
     
-    if new-boss = "" [
-      set new-boss make-outsider-boss
+    if occ = -1 [
+      set occ new-job
     ]
     
-    set boss new-boss
-    
-    create-link-with person boss [
-      set color red
-    ]
-    
-    ask person boss [
-      set occ occ-who
+    if occ != -1 [
+      create-link-with occupation occ [
+        set color green
+      ]
     ]
     
   ]
@@ -954,7 +1003,7 @@ STARTING-COUPLES
 STARTING-COUPLES
 1
 10
-1
+4
 1
 1
 NIL
@@ -984,7 +1033,7 @@ OUTSIDER-CHANCE
 OUTSIDER-CHANCE
 0
 100
-0
+23
 1
 1
 NIL
@@ -1117,22 +1166,37 @@ BOSS-CHANCE
 BOSS-CHANCE
 0
 100
-71
+67
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-479
-88
-675
-121
+477
+103
+673
+136
 STARTING-OCCUPATIONS
 STARTING-OCCUPATIONS
 0
 10
 10
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+477
+63
+656
+96
+APPLICATION-CHANCE
+APPLICATION-CHANCE
+0
+100
+50
 1
 1
 NIL
