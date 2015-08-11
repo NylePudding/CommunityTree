@@ -23,7 +23,7 @@
 globals[gen]
 breed[people person]
 breed[occupations occupation]
-people-own[forename surname partner children gender mother father homosexual had-children afairs afair-avaliable divorces generation age occ]
+people-own[forename surname partner children gender mother father homosexual had-children afairs afair-avaliable divorces generation age occ friends job-history]
 occupations-own[boss full-time part-time applicants capacity previous]
 links-own[strength name]
 
@@ -82,8 +82,14 @@ to year-cycle
     set age age + 1
   ]
   
+  
+  process-births
+  process-retirement
+  ;process-redundancy
+  process-job-change
   find-bosses
   apply-for-occs
+  find-partners
   
 end
 
@@ -94,6 +100,61 @@ to process-divorces
       let rand random(101)
       if rand < DIVORCE-CHANCE[
         divorce who
+      ]
+    ]
+  ]
+end
+
+to process-redundancy
+  ask people[
+    let rand-int random(101)
+    if rand-int < REDUNDANCY-CHANCE[
+      ask occupation occ[
+        set full-time remove who full-time
+        set part-time remove who part-time
+      ]
+    ] 
+  ]
+end
+
+
+to process-job-change
+  
+  
+  
+end
+
+
+to process-retirement
+  
+  
+  
+end
+
+to process-births
+  
+  
+  
+  
+  ask people [
+      
+    let rand-int random(101)
+    
+    if rand-int < BIRTH-CHANCE[
+      
+      if homosexual = false[
+        if partner != -1[
+          if gender = "m"[
+            make-child who partner
+          ]
+          if gender = "f" [
+            make-child partner who
+          ]
+          
+          
+          ask person partner [
+          ]
+        ]
       ]
     ]
   ]
@@ -138,6 +199,8 @@ to have-afair[me them]
     set afairs fput me afairs
   ]
 end
+
+
 
 to divorce[me]
   let them -1
@@ -263,24 +326,26 @@ to apply-for-occs
     
     let new-job -1
     let me-who who
-    if occ = -1[
-      ask occupations [
-        let employees (length part-time) + (length full-time)
-        
-        if employees < capacity[
+    if age >= 18[
+      if occ = -1[
+        ask occupations [
+          let employees (length part-time) + (length full-time)
           
-          let randInt random(101)
-          
-          if randInt < APPLICATION-CHANCE[
-            set new-job who
-            set randInt random(2)
-            if randInt = 0 [
-              set full-time fput me-who full-time
-            ]
-            if randInt = 1 [
-              set part-time fput me-who part-time
-            ]
+          if employees < capacity[
             
+            let randInt random(101)
+            
+            if randInt < APPLICATION-CHANCE[
+              set new-job who
+              set randInt random(2)
+              if randInt = 0 [
+                set full-time fput me-who full-time
+              ]
+              if randInt = 1 [
+              set part-time fput me-who part-time
+              ]
+              
+            ]
           ]
         ]
       ]
@@ -486,6 +551,8 @@ to make-couple
     set had-children false
     set occ -1
     set age random(82) + 18
+    set friends (list)
+    set job-history (list)
     set c1-age age
     set c1 who
   ]
@@ -507,6 +574,8 @@ to make-couple
     set had-children false
     set occ -1
     set age random(82) + 18
+    set friends (list)
+    set job-history (list)
     set c2 who
   ]
   
@@ -566,6 +635,8 @@ to make-outsider-couple[them]
     set homosexual false
     set had-children false
     set occ -1
+    set friends (list)
+    set job-history (list)
     set afair-avaliable false
     set afairs (list)
     set divorces (list)
@@ -620,6 +691,9 @@ to-report make-outsider-boss
       set afair-avaliable false
       set afairs (list)
       set divorces (list)
+      set children (list)
+      set friends (list)
+      set job-history (list)
       
       
       
@@ -645,6 +719,8 @@ to make-child[m f] ;m : male - f : female
     set divorces (list)
     set had-children false
     set occ -1
+    set friends (list)
+    set job-history (list)
     set c-who who
     set homosexual false
     
@@ -1003,7 +1079,7 @@ STARTING-COUPLES
 STARTING-COUPLES
 1
 10
-4
+10
 1
 1
 NIL
@@ -1033,7 +1109,7 @@ OUTSIDER-CHANCE
 OUTSIDER-CHANCE
 0
 100
-23
+100
 1
 1
 NIL
@@ -1151,7 +1227,7 @@ PARTNER-CHANCE
 PARTNER-CHANCE
 0
 100
-50
+100
 1
 1
 NIL
@@ -1174,9 +1250,9 @@ HORIZONTAL
 
 SLIDER
 477
-103
+129
 673
-136
+162
 STARTING-OCCUPATIONS
 STARTING-OCCUPATIONS
 0
@@ -1194,6 +1270,36 @@ SLIDER
 96
 APPLICATION-CHANCE
 APPLICATION-CHANCE
+0
+100
+50
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+477
+96
+649
+129
+BIRTH-CHANCE
+BIRTH-CHANCE
+0
+100
+10
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+477
+162
+657
+195
+REDUNDANCY-CHANCE
+REDUNDANCY-CHANCE
 0
 100
 50
