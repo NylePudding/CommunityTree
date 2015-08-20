@@ -20,17 +20,17 @@
 
 
 
-globals[gen]
+globals[year]
 breed[people person]
 breed[occupations occupation]
-people-own[forename surname partner children gender mother father homosexual had-children afairs afair-avaliable divorces generation age occ friends job-history]
-occupations-own[boss full-time part-time applicants capacity previous]
+people-own[forename surname partner children gender mother father homosexual had-children afairs afair-avaliable divorces age occ friends job-history alive]
+occupations-own[boss full-time part-time capacity previous]
 links-own[strength name]
 
 to setup
   
-  set gen 0
-  
+  set year 0
+
   clear-all
   set-default-shape people "person"
   set-default-shape occupations "house"
@@ -64,7 +64,6 @@ end
 
 to generation-cycle
   
-  set gen gen + 1
   create-families
   find-partners
   
@@ -78,17 +77,22 @@ to intrigue-cycle
 end
 
 to year-cycle
+  
+  set year year + 1
+  
   ask people[
     set age age + 1
   ]
   
   
   process-births
+  process-deaths
   process-retirement
-  ;process-redundancy
+  process-redundancy
+  process-new-friends
   process-job-change
-  find-bosses
-  apply-for-occs
+  process-new-bosses
+  process-applications
   find-partners
   
 end
@@ -107,34 +111,152 @@ end
 
 to process-redundancy
   ask people[
-    let rand-int random(101)
-    if rand-int < REDUNDANCY-CHANCE[
-      ask occupation occ[
-        set full-time remove who full-time
-        set part-time remove who part-time
+    let me-who who
+    if occ != -1[
+      let rand-int random(101)
+      if rand-int < REDUNDANCY-CHANCE[
+        ask occupation occ[
+          set full-time remove me-who full-time
+          set part-time remove me-who part-time
+          if boss = me-who[
+            set boss -1
+          ]
+        ]
+      
+        set job-history fput "made redundant" job-history
+        set job-history fput age job-history
+        set job-history fput occ job-history
+        
+        remove-links-between who occ
+        
+        set occ -1
+        
       ]
     ] 
   ]
 end
 
+to process-new-friends
+  
+end
+
 
 to process-job-change
   
-  
+  ask people [
+    if occ != -1[
+      let rand-int random(101)
+      
+      if rand-int < NEW-JOB-CHANCE[
+        
+        let prev-occ occ
+        let new-job occ
+        let me-who who
+        let me-occ occ
+        
+        ask occupations [
+          if who != me-occ[
+            let occ-who who
+            let employees (length part-time) + (length full-time)
+            
+            if employees < capacity[
+              
+              ask person me-who[
+                set job-history fput "applied for" job-history
+                set job-history fput age job-history
+                set job-history fput occ-who job-history
+              ]
+              
+              
+              let randInt random(101)
+              if randInt < APPLICATION-CHANCE[
+                set new-job who
+                stop
+              ]
+            ]
+          ]
+        ]
+        
+        
+        if new-job != prev-occ [
+          
+          remove-links-between who occ
+          
+          ask occupation occ[
+            set full-time remove me-who full-time
+            set part-time remove me-who part-time
+            
+            if boss = me-who[
+              set boss -1
+            ]
+          ]
+          
+          set occ new-job
+          
+          set job-history fput "changed job" job-history
+          set job-history fput age job-history
+          set job-history fput new-job job-history
+          
+          ask occupation occ[
+            let randInt random(2)
+            if randInt = 0 [
+              set full-time fput me-who full-time
+            ]
+            if randInt = 1 [
+              set part-time fput me-who part-time
+            ]
+          ]
+          
+          create-link-with occupation occ [
+            set color green
+          ]
+        ]
+      ]
+    ]
+  ]
   
 end
 
 
 to process-retirement
   
+  ask people[
+    let me-who who
+    if occ != -1[
+      if age >= RETIREMENT-AGE[
+        let rand-int random(101)
+        if rand-int < RETIREMENT-CHANCE[
+          ask occupation occ[
+            set full-time remove me-who full-time
+            set part-time remove me-who part-time
+            
+            if boss = me-who[
+              set boss -1
+            ]
+          ]
+          
+          set job-history fput "retired" job-history
+          set job-history fput age job-history
+          set job-history fput occ job-history
+          
+          remove-links-between who occ
+          
+          set occ -1
+          
+        ]
+      ]
+    ]
+  ]
+  
+end
+
+to process-deaths
+  
   
   
 end
 
 to process-births
-  
-  
-  
   
   ask people [
       
@@ -144,15 +266,20 @@ to process-births
       
       if homosexual = false[
         if partner != -1[
-          if gender = "m"[
-            make-child who partner
-          ]
-          if gender = "f" [
-            make-child partner who
-          ]
           
+          let partner-age -1
           
           ask person partner [
+            set partner-age age
+          ]
+          
+          if age < 60 and partner-age < 60[
+            if gender = "m"[
+              make-child who partner
+            ]
+            if gender = "f" [
+              make-child partner who
+            ]
           ]
         ]
       ]
@@ -268,7 +395,6 @@ to create-job
     set boss -1
     set full-time (list)
     set part-time (list)
-    set applicants (list)
     set previous (list)
     set capacity 99
   ]
@@ -278,7 +404,7 @@ end
 
 
 
-to find-bosses
+to process-new-bosses
   
   ask occupations[
     
@@ -306,6 +432,11 @@ to find-bosses
       
       ask person boss [
         set occ occ-who
+        set job-history fput "became boss" job-history
+        set job-history fput age job-history
+        set job-history fput occ-who job-history
+        
+        
       ]
       
       create-link-with person boss [
@@ -320,47 +451,58 @@ to find-bosses
   
 end
 
-to apply-for-occs
+to process-applications
   
   ask people [
     
     let new-job -1
     let me-who who
-    if age >= 18[
+    if age >= 18 and age < RETIREMENT-AGE [
       if occ = -1[
         ask occupations [
+          let occ-who who
           let employees (length part-time) + (length full-time)
           
           if employees < capacity[
             
-            let randInt random(101)
+            ask person me-who[
+              set job-history fput "applied for" job-history
+              set job-history fput age job-history
+              set job-history fput occ-who job-history
+            ]
             
+            
+            let randInt random(101)
             if randInt < APPLICATION-CHANCE[
               set new-job who
-              set randInt random(2)
-              if randInt = 0 [
-                set full-time fput me-who full-time
-              ]
-              if randInt = 1 [
-              set part-time fput me-who part-time
-              ]
-              
+              stop
             ]
           ]
         ]
       ]
-    ]
-    
-    if occ = -1 [
-      set occ new-job
-    ]
-    
-    if occ != -1 [
-      create-link-with occupation occ [
-        set color green
+      
+      if new-job != -1 [
+        set occ new-job
+        
+        set job-history fput "new job" job-history
+        set job-history fput age job-history
+        set job-history fput new-job job-history
+        
+        ask occupation occ[
+          let randInt random(2)
+          if randInt = 0 [
+            set full-time fput me-who full-time
+          ]
+          if randInt = 1 [
+            set part-time fput me-who part-time
+          ]
+        ]
+        
+        create-link-with occupation occ [
+          set color green
+        ]
       ]
     ]
-    
   ]
   
 end
@@ -535,7 +677,6 @@ to make-couple
   create-people 1 [
     setxy random-xcor random-ycor
     set color blue
-    set generation 0
     set forename generate-forename "m"
     set surname generate-surname
     set c1-surname surname
@@ -552,12 +693,12 @@ to make-couple
     set occ -1
     set age random(82) + 18
     set friends (list)
+    set alive true
     set job-history (list)
     set c1-age age
     set c1 who
   ]
   create-people 1 [
-    set generation 0
     setxy random-xcor random-ycor
     set color red
     set forename generate-forename "f"
@@ -575,6 +716,7 @@ to make-couple
     set occ -1
     set age random(82) + 18
     set friends (list)
+    set alive true
     set job-history (list)
     set c2 who
   ]
@@ -593,11 +735,9 @@ to make-outsider-couple[them]
   
   let outsider -1
   let them-gender "m"
-  let them-generation generation
   
   ask person them [
     set them-gender gender
-    set them-generation generation
   ]
   
   
@@ -628,7 +768,6 @@ to make-outsider-couple[them]
       ]
     ]
     
-    set generation them-generation
     set forename generate-forename gender
     set mother -1
     set father -1
@@ -636,6 +775,7 @@ to make-outsider-couple[them]
     set had-children false
     set occ -1
     set friends (list)
+    set alive true
     set job-history (list)
     set afair-avaliable false
     set afairs (list)
@@ -693,6 +833,8 @@ to-report make-outsider-boss
       set divorces (list)
       set children (list)
       set friends (list)
+      set partner -1
+      set alive true
       set job-history (list)
       
       
@@ -708,7 +850,7 @@ to make-child[m f] ;m : male - f : female
   let c-who -1
   
   hatch 1 [
-    set generation gen
+
     set age 0
     set partner -1
     set children (list)
@@ -720,6 +862,7 @@ to make-child[m f] ;m : male - f : female
     set had-children false
     set occ -1
     set friends (list)
+    set alive true
     set job-history (list)
     set c-who who
     set homosexual false
@@ -802,6 +945,7 @@ to who-is[them]
   ;;PARENTS
   ask person them[
     output-print (word "Bio for: " forename " " surname)
+    output-print (word "Age: " age)
     let mum ""
     
     if mother != -1[
@@ -912,12 +1056,12 @@ to who-is[them]
     
     let outsider " (outsider)"
     let partner-name "no-one"
-    let partner-generation 0
+    ;let partner-generation 0
     let gen-difference 0
     
     if partner != -1[
       ask person partner [
-        set partner-generation generation
+        ;set partner-generation generation
         set partner-name (word forename " " surname)
         if mother != -1 or father != -1[
           set outsider " (not outsider)"
@@ -925,14 +1069,14 @@ to who-is[them]
       ]
     ]
     
-    set gen-difference (generation - partner-generation)
-    if gen-difference != 0[
-      let generation-output (word "(" gen-difference " difference in generation)")
-      output-print (word "Married to: " partner-name outsider generation-output)
-    ]
-    if gen-difference = 0 [
+    ;set gen-difference (generation - partner-generation)
+    ;if gen-difference != 0[
+      ;let generation-output (word "(" gen-difference " difference in generation)")
+      ;output-print (word "Married to: " partner-name outsider generation-output)
+    ;]
+    ;if gen-difference = 0 [
       output-print (word "Married to: " partner-name outsider)
-    ]
+    ;]
     
     
   ]
@@ -993,10 +1137,10 @@ to move
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-744
-66
-1345
-688
+1014
+64
+1615
+686
 16
 16
 17.91
@@ -1078,8 +1222,8 @@ SLIDER
 STARTING-COUPLES
 STARTING-COUPLES
 1
-10
-10
+50
+25
 1
 1
 NIL
@@ -1109,7 +1253,7 @@ OUTSIDER-CHANCE
 OUTSIDER-CHANCE
 0
 100
-100
+50
 1
 1
 NIL
@@ -1124,7 +1268,7 @@ HOMOSEXUAL-CHANCE
 HOMOSEXUAL-CHANCE
 0
 100
-50
+15
 1
 1
 NIL
@@ -1235,14 +1379,14 @@ HORIZONTAL
 
 SLIDER
 477
-27
-657
-60
+30
+656
+63
 BOSS-CHANCE
 BOSS-CHANCE
 0
 100
-67
+20
 1
 1
 NIL
@@ -1251,13 +1395,13 @@ HORIZONTAL
 SLIDER
 477
 129
-673
+656
 162
 STARTING-OCCUPATIONS
 STARTING-OCCUPATIONS
 0
-10
-10
+50
+5
 1
 1
 NIL
@@ -1272,7 +1416,7 @@ APPLICATION-CHANCE
 APPLICATION-CHANCE
 0
 100
-50
+100
 1
 1
 NIL
@@ -1281,13 +1425,13 @@ HORIZONTAL
 SLIDER
 477
 96
-649
+656
 129
 BIRTH-CHANCE
 BIRTH-CHANCE
 0
 100
-10
+40
 1
 1
 NIL
@@ -1296,13 +1440,73 @@ HORIZONTAL
 SLIDER
 477
 162
-657
+656
 195
 REDUNDANCY-CHANCE
 REDUNDANCY-CHANCE
 0
 100
-50
+0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+478
+220
+652
+253
+RETIREMENT-AGE
+RETIREMENT-AGE
+0
+100
+70
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+478
+253
+652
+286
+RETIREMENT-CHANCE
+RETIREMENT-CHANCE
+0
+100
+0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+678
+26
+853
+59
+NEW-FRIEND-CHANCE
+NEW-FRIEND-CHANCE
+0
+100
+0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+680
+79
+852
+112
+NEW-JOB-CHANCE
+NEW-JOB-CHANCE
+0
+100
+0
 1
 1
 NIL
