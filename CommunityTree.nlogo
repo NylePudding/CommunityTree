@@ -23,9 +23,9 @@
 globals[year]
 breed[people person]
 breed[occupations occupation]
-people-own[forename surname partner children gender mother father homosexual had-children afairs afair-avaliable divorces age occ friends job-history alive]
+people-own[forename surname partner children gender mother father homosexual had-children afairs afair-avaliable divorces age occ friends job-history alive sad-happy fear-anger]
 occupations-own[boss full-time part-time capacity previous]
-links-own[strength name]
+links-own[strength]
 
 to setup
   
@@ -90,9 +90,11 @@ to year-cycle
   process-retirement
   process-redundancy
   process-new-friends
+  process-new-enemies
   process-job-change
   process-new-bosses
   process-applications
+  process-affairs
   find-partners
   
 end
@@ -122,7 +124,7 @@ to process-redundancy
             set boss -1
           ]
         ]
-      
+        
         set job-history fput "made redundant" job-history
         set job-history fput age job-history
         set job-history fput occ job-history
@@ -130,9 +132,8 @@ to process-redundancy
         remove-links-between who occ
         
         set occ -1
-        
       ]
-    ] 
+    ]
   ]
 end
 
@@ -140,6 +141,13 @@ to process-new-friends
   
 end
 
+to process-new-enemies 
+  
+end
+
+to process-affairs
+  
+end
 
 to process-job-change
   
@@ -693,6 +701,8 @@ to make-couple
     set occ -1
     set age random(82) + 18
     set friends (list)
+    set sad-happy 0
+    set fear-anger 0
     set alive true
     set job-history (list)
     set c1-age age
@@ -716,6 +726,8 @@ to make-couple
     set occ -1
     set age random(82) + 18
     set friends (list)
+    set sad-happy 0
+    set fear-anger 0
     set alive true
     set job-history (list)
     set c2 who
@@ -775,6 +787,8 @@ to make-outsider-couple[them]
     set had-children false
     set occ -1
     set friends (list)
+    set sad-happy 0
+    set fear-anger 0
     set alive true
     set job-history (list)
     set afair-avaliable false
@@ -833,6 +847,8 @@ to-report make-outsider-boss
       set divorces (list)
       set children (list)
       set friends (list)
+      set sad-happy 0
+      set fear-anger 0
       set partner -1
       set alive true
       set job-history (list)
@@ -862,6 +878,8 @@ to make-child[m f] ;m : male - f : female
     set had-children false
     set occ -1
     set friends (list)
+    set sad-happy 0
+    set fear-anger 0
     set alive true
     set job-history (list)
     set c-who who
@@ -1129,6 +1147,30 @@ to who-is[them]
     output-print (word "Daughters: " daughters)
   ]
   
+  ;JOB-HISTORY
+  ask person them[
+    
+    output-print(word "Job History:")
+    
+    let jh-length length job-history
+    
+    if jh-length != 0[
+      set jh-length jh-length / 3
+      let index 0
+      repeat jh-length[
+        let job-no item index job-history
+        set index index + 1
+        let person-age item index job-history
+        set index index + 1
+        let person-event item index job-history
+        set index index + 1
+        
+        output-print(word "Age - " person-age ", " person-event " " job-no)
+      ]
+    ]
+    
+  ]
+  
   
 end
 
@@ -1137,10 +1179,10 @@ to move
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-1014
-64
-1615
-686
+1018
+62
+1619
+684
 16
 16
 17.91
@@ -1198,10 +1240,10 @@ NIL
 1
 
 BUTTON
-316
-215
-379
-248
+320
+213
+383
+246
 NIL
 move
 T
@@ -1268,7 +1310,7 @@ HOMOSEXUAL-CHANCE
 HOMOSEXUAL-CHANCE
 0
 100
-15
+30
 1
 1
 NIL
@@ -1300,7 +1342,7 @@ DIVORCE-CHANCE
 DIVORCE-CHANCE
 0
 100
-10
+20
 1
 1
 NIL
@@ -1339,10 +1381,10 @@ NIL
 1
 
 OUTPUT
-9
-337
-471
-601
+13
+335
+475
+599
 12
 
 BUTTON
@@ -1401,7 +1443,7 @@ STARTING-OCCUPATIONS
 STARTING-OCCUPATIONS
 0
 50
-5
+10
 1
 1
 NIL
@@ -1431,7 +1473,7 @@ BIRTH-CHANCE
 BIRTH-CHANCE
 0
 100
-40
+20
 1
 1
 NIL
@@ -1453,10 +1495,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-478
-220
-652
-253
+482
+218
+656
+251
 RETIREMENT-AGE
 RETIREMENT-AGE
 0
@@ -1468,15 +1510,15 @@ NIL
 HORIZONTAL
 
 SLIDER
-478
-253
-652
-286
+482
+251
+656
+284
 RETIREMENT-CHANCE
 RETIREMENT-CHANCE
 0
 100
-0
+100
 1
 1
 NIL
@@ -1855,7 +1897,7 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.1.0
+NetLogo 5.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
