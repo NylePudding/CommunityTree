@@ -23,7 +23,7 @@
 globals[year]
 breed[people person]
 breed[occupations occupation]
-people-own[forename surname partner children gender mother father homosexual had-children afairs afair-avaliable divorces age occ friends job-history alive sad-happy fear-anger]
+people-own[forename surname partner children gender mother father homosexual had-children afairs afair-avaliable divorces age occ acquaintances job-history alive sad-happy afraid-angry]
 occupations-own[boss full-time part-time capacity previous]
 links-own[strength]
 
@@ -41,12 +41,9 @@ to setup
   repeat STARTING-COUPLES [
     make-couple
   ]
-  
   repeat STARTING-OCCUPATIONS [
     create-job
   ]
-  
-  
   
 end
 
@@ -81,10 +78,12 @@ to year-cycle
   set year year + 1
   
   ask people[
-    set age age + 1
-  ]
+    if alive = true[
+      set age age + 1
+    ]
+  ]  
   
-  
+  process-divorces
   process-births
   process-deaths
   process-retirement
@@ -94,11 +93,9 @@ to year-cycle
   process-job-change
   process-new-bosses
   process-applications
-  process-affairs
+  ;process-afairs
   find-partners
-  
 end
-
 
 to process-divorces
   ask people[
@@ -142,10 +139,6 @@ to process-new-friends
 end
 
 to process-new-enemies 
-  
-end
-
-to process-affairs
   
 end
 
@@ -259,34 +252,77 @@ to process-retirement
 end
 
 to process-deaths
-  
-  
-  
+  ask people [
+    if alive = true[
+      
+      let rand -1
+      
+      if age <= 4[
+        set rand random(4386)
+      ]
+      if age > 4 and age <= 14[
+        set rand random(8333)
+      ]
+      if age > 14 and age <= 24[
+        set rand random(1908)
+      ]
+      if age > 24 and age <= 34[
+        set rand random(1215)
+      ]
+      if age > 34 and age <= 44[
+        set rand random(663)
+      ]
+      if age > 44 and age <= 54[
+        set rand random(279)
+      ]
+      if age > 54 and age <= 64[
+        set rand random(112)
+      ]
+      if age > 64 and age <= 74[
+        set rand random(42)
+      ]
+      if age > 74 and age <= 84[
+        set rand random(15)
+      ]
+      if age >= 85[
+        set rand random(6)
+      ]
+      
+      if rand = 1[
+        dead-clean-up who
+        
+        output-print (word who " died horribly age " age)
+      ]
+    ]
+  ]
 end
 
 to process-births
   
   ask people [
-      
-    let rand-int random(101)
     
-    if rand-int < BIRTH-CHANCE[
+    if alive = true[
       
-      if homosexual = false[
-        if partner != -1[
-          
-          let partner-age -1
-          
-          ask person partner [
-            set partner-age age
-          ]
-          
-          if age < 60 and partner-age < 60[
-            if gender = "m"[
-              make-child who partner
+      let rand-int random(101)
+      
+      if rand-int < BIRTH-CHANCE[
+        
+        if homosexual = false[
+          if partner != -1[
+            
+            let partner-age -1
+            
+            ask person partner [
+              set partner-age age
             ]
-            if gender = "f" [
-              make-child partner who
+            
+            if age < 60 and partner-age < 60[
+              if gender = "m"[
+                make-child who partner
+              ]
+              if gender = "f" [
+                make-child partner who
+              ]
             ]
           ]
         ]
@@ -356,7 +392,6 @@ to divorce[me]
     if father = -1[
       set surname generate-surname
     ]
-
   ]
   if them != -1[
     ask person them[
@@ -392,8 +427,8 @@ to divorce[me]
 end
 
 to remove-links-between [ a b ] 
-   if is-link? link a b [ ask link a b [ die ] ] 
-   if is-link? link b a [ ask link b a [ die ] ] 
+   if is-link? link a b [ ask link a b [ die ] ]
+   if is-link? link b a [ ask link b a [ die ] ]
 end 
 
 to create-job
@@ -417,16 +452,17 @@ to process-new-bosses
   ask occupations[
     
     let occ-who who
-    
-    
+        
     let new-boss ""
     if boss = -1[
       ask people[
-        if age >= 18[
-          if occ = -1 [
-            if random(101) < BOSS-CHANCE[
-              set new-boss who
-              stop
+        if alive = true[
+          if age >= 18[
+            if occ = -1 [
+              if random(101) < BOSS-CHANCE[
+                set new-boss who
+                stop
+              ]
             ]
           ]
         ] 
@@ -443,19 +479,13 @@ to process-new-bosses
         set job-history fput "became boss" job-history
         set job-history fput age job-history
         set job-history fput occ-who job-history
-        
-        
       ]
       
       create-link-with person boss [
         set color red
       ]
-      
-      
     ]
   ]
-  
-  
   
 end
 
@@ -465,49 +495,51 @@ to process-applications
     
     let new-job -1
     let me-who who
-    if age >= 18 and age < RETIREMENT-AGE [
-      if occ = -1[
-        ask occupations [
-          let occ-who who
-          let employees (length part-time) + (length full-time)
+    if alive = true[
+      if age >= 18 and age < RETIREMENT-AGE [
+        if occ = -1[
+          ask occupations [
+            let occ-who who
+            let employees (length part-time) + (length full-time)
+            
+            if employees < capacity[
+              
+              ask person me-who[
+                set job-history fput "applied for" job-history
+                set job-history fput age job-history
+                set job-history fput occ-who job-history
+              ]
+              
+              
+              let randInt random(101)
+              if randInt < APPLICATION-CHANCE[
+                set new-job who
+                stop
+              ]
+            ]
+          ]
+        ]
+        
+        if new-job != -1 [
+          set occ new-job
           
-          if employees < capacity[
-            
-            ask person me-who[
-              set job-history fput "applied for" job-history
-              set job-history fput age job-history
-              set job-history fput occ-who job-history
+          set job-history fput "new job" job-history
+          set job-history fput age job-history
+          set job-history fput new-job job-history
+          
+          ask occupation occ[
+            let randInt random(2)
+            if randInt = 0 [
+              set full-time fput me-who full-time
             ]
-            
-            
-            let randInt random(101)
-            if randInt < APPLICATION-CHANCE[
-              set new-job who
-              stop
+            if randInt = 1 [
+              set part-time fput me-who part-time
             ]
           ]
-        ]
-      ]
-      
-      if new-job != -1 [
-        set occ new-job
-        
-        set job-history fput "new job" job-history
-        set job-history fput age job-history
-        set job-history fput new-job job-history
-        
-        ask occupation occ[
-          let randInt random(2)
-          if randInt = 0 [
-            set full-time fput me-who full-time
+          
+          create-link-with occupation occ [
+            set color green
           ]
-          if randInt = 1 [
-            set part-time fput me-who part-time
-          ]
-        ]
-        
-        create-link-with occupation occ [
-          set color green
         ]
       ]
     ]
@@ -547,66 +579,67 @@ to find-partners
     let g gender
     let last-name surname
     
-    if age >= 18[
-      if partner = -1[
-        ask other people [
-          if generations-away 2 me who = true [
-            if partner = -1 [
-              if homosexual = false [
-                if gender != g[
-                  set match who
-                ]
-              ]
-              if homosexual = true [
-                if me-homosexual = homosexual[
-                  if gender = g [
+    if alive[
+      if age >= 18[
+        if partner = -1[
+          ask other people [
+            if generations-away 2 me who = true [
+              if partner = -1 [
+                if homosexual = false [
+                  if gender != g[
                     set match who
+                  ]
+                ]
+                if homosexual = true [
+                  if me-homosexual = homosexual[
+                    if gender = g [
+                      set match who
+                    ]
                   ]
                 ]
               ]
             ]
           ]
-        ]
-      
-      
-        if match != -1[
-          let m-surname ""
-          ask person match [
-            set partner me
-            set m-surname surname
-            
-            if homosexual = false[
-              if gender = "f"[
+          
+          
+          if match != -1[
+            let m-surname ""
+            ask person match [
+              set partner me
+              set m-surname surname
+              
+              if homosexual = false[
+                if gender = "f"[
+                  set surname last-name
+                ]
+              ]
+              if homosexual = true[
                 set surname last-name
               ]
+              
+              create-link-with person me [
+                set color red
+              ]
             ]
-            if homosexual = true[
-              set surname last-name
-            ]
-            
-            create-link-with person me [
-              set color red
-            ]
-          ]
-          if homosexual = false [
-            if gender = "f"[
-              set surname m-surname
+            if homosexual = false [
+              if gender = "f"[
+                set surname m-surname
+              ]
             ]
           ]
-        ]
-        
-        
-        if match = -1 [
-          let rand random(101)
-          if rand < OUTSIDER-CHANCE[
-            make-outsider-couple who
+          
+          
+          if match = -1 [
+            let rand random(101)
+            if rand < OUTSIDER-CHANCE[
+              make-outsider-couple who
+            ]
+          ]
+          
+          if match != -1 [
+            set partner match
           ]
         ]
-        
-        if match != -1 [
-          set partner match
-        ]
-        
       ]
     ]
   ]
@@ -700,9 +733,9 @@ to make-couple
     set had-children false
     set occ -1
     set age random(82) + 18
-    set friends (list)
+    set acquaintances (list)
     set sad-happy 0
-    set fear-anger 0
+    set afraid-angry 0
     set alive true
     set job-history (list)
     set c1-age age
@@ -725,9 +758,9 @@ to make-couple
     set had-children false
     set occ -1
     set age random(82) + 18
-    set friends (list)
+    set acquaintances (list)
     set sad-happy 0
-    set fear-anger 0
+    set afraid-angry 0
     set alive true
     set job-history (list)
     set c2 who
@@ -786,9 +819,9 @@ to make-outsider-couple[them]
     set homosexual false
     set had-children false
     set occ -1
-    set friends (list)
+    set acquaintances (list)
     set sad-happy 0
-    set fear-anger 0
+    set afraid-angry 0
     set alive true
     set job-history (list)
     set afair-avaliable false
@@ -846,9 +879,9 @@ to-report make-outsider-boss
       set afairs (list)
       set divorces (list)
       set children (list)
-      set friends (list)
+      set acquaintances (list)
       set sad-happy 0
-      set fear-anger 0
+      set afraid-angry 0
       set partner -1
       set alive true
       set job-history (list)
@@ -877,9 +910,9 @@ to make-child[m f] ;m : male - f : female
     set divorces (list)
     set had-children false
     set occ -1
-    set friends (list)
+    set acquaintances (list)
     set sad-happy 0
-    set fear-anger 0
+    set afraid-angry 0
     set alive true
     set job-history (list)
     set c-who who
@@ -919,6 +952,8 @@ to make-child[m f] ;m : male - f : female
 end
 
 
+
+
 to make-family[m f]
   
   let c MAX-CHILDREN + 1
@@ -938,7 +973,7 @@ to-report generate-forename[g]
     set forenames (list "Sarah" "Amy" "Rosie" "Nicole" "Penni" "Rue" "Megan" "Hannah" "Bridget" "Jessica" "Guenevere" "Ellen" "Lilly" "Hermione" "Abbie" "Laura" "Kelly" "Mildrid" "Margaret" "Rossalind" "Elizabeth" "Nusha" "Ayumi" "Tara" "Sita" "Sophia" "Emma" "Olivia" "Mia" "Zoe" "Layla" "Hailey" "Evelyn" "Kaitlyn") 
   ]
   if g = "m"[
-    set forenames (list "Jack" "Oliver" "Charlie" "Harry" "Jacob" "Alfie" "Noah" "Oscar" "George" "James" "Thomas" "Jon" "Joseph" "Toby" "Biedrik" "Logan" "Freddie" "Jake" "Aiden" "Barry" "Larry" "Ethan" "Theo" "Luke" "Ollie" "Lewis" "Adam" "Isaac" "Benjamin" "Harley" "Tyler" "Alex" "Tommy" "Connor" "Nathan" "Matthew")
+    set forenames (list "Jack" "Oliver" "Charlie" "Harry" "Jacob" "Alfie" "Noah" "Oscar" "George" "James" "Thomas" "Jon" "Joseph" "Toby" "Biedrik" "Logan" "Freddie" "Jake" "Aiden" "Barry" "Larry" "Ethan" "Theo" "Luke" "Ollie" "Lewis" "Adam" "Isaac" "Benjamin" "Peter" "Tyler" "Alex" "Tommy" "Connor" "Nathan" "Matthew")
   ]
   
   let len length forenames
@@ -956,9 +991,47 @@ to-report generate-surname
   
 end
 
+to dead-clean-up[dead-who]
+  ask person dead-who[
+    
+    let me-who who
+    
+    set color grey
+
+    if partner != -1[
+      ask person partner[
+        set partner -1
+      ]
+    ]
+    
+    if occ != -1[
+      ask occupation occ[
+        set full-time remove me-who full-time
+        set part-time remove me-who part-time
+        if boss = me-who[
+          set boss -1
+        ]
+      ]
+    ]
+    set job-history fput "died" job-history
+    set job-history fput age job-history
+    set job-history fput occ job-history
+    
+    remove-links-between who occ
+    
+    set occ -1
+    
+    set alive false
+  ]
+  
+end
+
+
 to who-is[them]
   
   clear-output
+  
+  
   
   ;;PARENTS
   ask person them[
@@ -1265,7 +1338,7 @@ STARTING-COUPLES
 STARTING-COUPLES
 1
 50
-25
+20
 1
 1
 NIL
@@ -1413,7 +1486,7 @@ PARTNER-CHANCE
 PARTNER-CHANCE
 0
 100
-100
+25
 1
 1
 NIL
