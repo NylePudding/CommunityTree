@@ -23,7 +23,7 @@
 globals[year]
 breed[people person]
 breed[occupations occupation]
-people-own[forename surname partner children gender mother father homosexual had-children afairs afair-avaliable divorces age occ acquaintances job-history alive sad-happy afraid-angry]
+people-own[forename surname partner children gender mother father homosexual had-children afairs afair-avaliable divorces age occ contacts job-history alive sad-happy afraid-angry stress]
 occupations-own[boss full-time part-time capacity previous]
 links-own[strength]
 
@@ -81,20 +81,19 @@ to year-cycle
     if alive = true[
       set age age + 1
     ]
-  ]  
+  ]
   
   process-divorces
   process-births
   process-deaths
   process-retirement
   process-redundancy
-  process-new-friends
-  process-new-enemies
   process-job-change
   process-new-bosses
   process-applications
   ;process-afairs
   find-partners
+  process-new-contacts
 end
 
 to process-divorces
@@ -134,12 +133,64 @@ to process-redundancy
   ]
 end
 
-to process-new-friends
+to process-new-contacts
   
-end
-
-to process-new-enemies 
-  
+  ask people [
+    
+    let me-contacts contacts
+    let me-who who
+    let occ-pt (list)
+    let occ-ft (list)
+    
+    if occ != -1 [
+    
+      ask occupation occ [
+        
+        set occ-pt part-time
+        set occ-ft full-time
+      ]
+      
+      foreach occ-pt [
+        let pt-who ?
+        let already false
+        if pt-who != who[
+          foreach contacts[
+            if pt-who = ? [
+              set already true
+            ]
+          ]
+          if already = false[
+            let rand random(101)
+            if rand < NEW-CONTACT-CHANCE[
+              set contacts fput pt-who contacts
+            ]
+          ]
+        ]
+      ]
+      foreach occ-ft[
+        let ft-who ?
+        let already false
+        if ft-who != who[
+          foreach contacts[
+            if ft-who = ? [
+              set already true
+            ]
+          ]
+          if already = false[
+            let rand random(101)
+            if rand < NEW-CONTACT-CHANCE[
+              set contacts fput ft-who contacts
+              create-link-with person ft-who[
+                set color white
+                set strength random(101) - random(101)
+                set hidden? true
+              ]
+            ]
+          ]
+        ]
+      ]
+    ]
+  ]
 end
 
 to process-job-change
@@ -209,6 +260,7 @@ to process-job-change
           ]
           
           create-link-with occupation occ [
+            set strength 0
             set color green
           ]
         ]
@@ -362,6 +414,7 @@ to have-afair[me them]
     set afairs fput them afairs
     
     create-link-with person them [
+      set strength 0
       set color black
     ]
   ]
@@ -376,21 +429,23 @@ end
 to divorce[me]
   let them -1
   ask person me[
-    set them partner
-    set partner -1
-    set had-children false
-    if them != -1[
-      set divorces fput them divorces
-    ]
-    if father != -1[
-      let original-surname ""
-      ask person father[
-        set original-surname surname
+    if alive = true [
+      set them partner
+      set partner -1
+      set had-children false
+      if them != -1[
+        set divorces fput them divorces
       ]
-      set surname original-surname
-    ]
-    if father = -1[
-      set surname generate-surname
+      if father != -1[
+        let original-surname ""
+        ask person father[
+          set original-surname surname
+        ]
+        set surname original-surname
+      ]
+      if father = -1[
+        set surname generate-surname
+      ]
     ]
   ]
   if them != -1[
@@ -413,15 +468,21 @@ to divorce[me]
     ]
   ]
   
-  remove-links-between me them
-  
-  ask person me[
-    if them != -1[
-      create-link-with person them [
-        set color brown
-      ]
+  ;remove-links-between me them
+  if is-link? link me them[
+    ask link me them [
+      set color brown
+      set strength strength - 50
     ]
   ]
+  
+;  ask person me[
+;    if them != -1[
+;      create-link-with person them [
+;        set color brown
+;      ]
+;    ]
+;  ]
   
   
 end
@@ -443,8 +504,6 @@ to create-job
   ]
   
 end
-
-
 
 
 to process-new-bosses
@@ -483,6 +542,7 @@ to process-new-bosses
       
       create-link-with person boss [
         set color red
+        set strength 75
       ]
     ]
   ]
@@ -538,6 +598,7 @@ to process-applications
           ]
           
           create-link-with occupation occ [
+            set strength 0
             set color green
           ]
         ]
@@ -618,6 +679,7 @@ to find-partners
               ]
               
               create-link-with person me [
+                set strength 50
                 set color red
               ]
             ]
@@ -733,8 +795,9 @@ to make-couple
     set had-children false
     set occ -1
     set age random(82) + 18
-    set acquaintances (list)
+    set contacts (list)
     set sad-happy 0
+    set stress 50
     set afraid-angry 0
     set alive true
     set job-history (list)
@@ -758,7 +821,7 @@ to make-couple
     set had-children false
     set occ -1
     set age random(82) + 18
-    set acquaintances (list)
+    set contacts (list)
     set sad-happy 0
     set afraid-angry 0
     set alive true
@@ -769,6 +832,7 @@ to make-couple
   ask person c1 [
     set partner c2
     create-link-with person c2 [
+      set strength 50
       set color red
     ]
   ]
@@ -819,7 +883,7 @@ to make-outsider-couple[them]
     set homosexual false
     set had-children false
     set occ -1
-    set acquaintances (list)
+    set contacts (list)
     set sad-happy 0
     set afraid-angry 0
     set alive true
@@ -834,6 +898,7 @@ to make-outsider-couple[them]
   ask person them [
     set partner outsider
     create-link-with person outsider [
+      set strength 50
       set color red
     ]
   ]
@@ -879,7 +944,7 @@ to-report make-outsider-boss
       set afairs (list)
       set divorces (list)
       set children (list)
-      set acquaintances (list)
+      set contacts (list)
       set sad-happy 0
       set afraid-angry 0
       set partner -1
@@ -910,7 +975,7 @@ to make-child[m f] ;m : male - f : female
     set divorces (list)
     set had-children false
     set occ -1
-    set acquaintances (list)
+    set contacts (list)
     set sad-happy 0
     set afraid-angry 0
     set alive true
@@ -935,9 +1000,11 @@ to make-child[m f] ;m : male - f : female
     set forename generate-forename gender
     
     create-link-with person m [
+      set strength 100
       set color green
     ]
     create-link-with person f [
+      set strength 100
       set color green
     ]
     
@@ -1368,7 +1435,7 @@ OUTSIDER-CHANCE
 OUTSIDER-CHANCE
 0
 100
-50
+0
 1
 1
 NIL
@@ -1415,7 +1482,7 @@ DIVORCE-CHANCE
 DIVORCE-CHANCE
 0
 100
-20
+100
 1
 1
 NIL
@@ -1486,7 +1553,7 @@ PARTNER-CHANCE
 PARTNER-CHANCE
 0
 100
-25
+0
 1
 1
 NIL
@@ -1516,7 +1583,7 @@ STARTING-OCCUPATIONS
 STARTING-OCCUPATIONS
 0
 50
-10
+1
 1
 1
 NIL
@@ -1576,7 +1643,7 @@ RETIREMENT-AGE
 RETIREMENT-AGE
 0
 100
-70
+100
 1
 1
 NIL
@@ -1622,6 +1689,21 @@ NEW-JOB-CHANCE
 0
 100
 0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+679
+123
+867
+156
+NEW-CONTACT-CHANCE
+NEW-CONTACT-CHANCE
+0
+100
+100
 1
 1
 NIL
